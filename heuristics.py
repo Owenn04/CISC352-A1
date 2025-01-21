@@ -40,8 +40,21 @@ def ord_dh(csp):
     ''' return next Variable to be assigned according to the Degree Heuristic '''
     # IMPLEMENT
     pass
+    '''
+    - get all unassigned variables 
+    - find n (index final element of above array)
+    - (x, y) check x-/+1 & y-/+1 unless that's < 1 or > n 
+        - add to counter
+        - save the variable with largest counter
+    - return Variable
+    '''
 
 def ord_mrv(csp):
     ''' return Variable to be assigned according to the Minimum Remaining Values heuristic '''
     # IMPLEMENT
     pass
+    """
+    - get all the unassigned variables
+    - iterate through to find variable with smallest domain
+    - return Variable
+    """

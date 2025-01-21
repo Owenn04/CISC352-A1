@@ -102,6 +102,19 @@ def prop_FC(csp, newVar=None):
        track of all pruned Variable,value pairs and return '''
     #IMPLEMENT
     pass
+    '''
+    - if none --> return
+    - else --> get variable assignment
+        - check surrounding nodes
+        - -1/+1 (n > x > 0)
+        - prunedVals = [[(x, y), 3, 4], [(a, b), 1]]
+        - remove newVar assignment from domain of surrounding nodes
+            - if no assignment available
+                - return False, prunedVals
+        - call prop_BT on new constraints
+        - if True --> return True, prunedVals
+        - else --> return False, prunedVals
+    '''
 
 
 def prop_GAC(csp, newVar=None):
