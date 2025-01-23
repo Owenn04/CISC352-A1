@@ -122,4 +122,21 @@ def prop_GAC(csp, newVar=None):
        processing all constraints. Otherwise we do GAC enforce with
        constraints containing newVar on GAC Queue'''
     #IMPLEMENT
+    '''
+    - if none -->
+		- heuristic (MRV?) to pick starting variable
+		- do same as else with heurist-selected cell as curr
+	- else -->
+		- initialize queue with adjacent cells
+		- while queue !empty
+			- pop cell from queue
+			- remove_inconsistent_values(curr, cell from queue)
+				- if true --> add all cell neighbours to queue (including curr cell)
+
+    function remove_inconsistent_values(curr, adj)
+        - for every value in curr.domain
+            - check if adj.domain has value which satisfies constraint
+            - if no --> remove value from curr.domain, return True
+    if yes --> return False
+    '''
     pass
