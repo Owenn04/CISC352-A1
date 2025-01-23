@@ -87,11 +87,13 @@ from cspbase import *
 
 def binary_ne_grid(cagey_grid):
     ##IMPLEMENT
+    # cage size can be at most 2 cells
     pass
 
 
 def nary_ad_grid(cagey_grid):
     ## IMPLEMENT
+    # cage size can be any size from 1 cell to n^2 cells. 
     pass
 
 def cagey_csp_model(cagey_grid):
