@@ -87,13 +87,29 @@ from cspbase import *
 
 def binary_ne_grid(cagey_grid):
     ##IMPLEMENT
-    # cage size can be at most 2 cells
+    # cage size can be at most 2 cells. 
+    # Makes use of FC Prop
+
     pass
 
 
 def nary_ad_grid(cagey_grid):
     ## IMPLEMENT
     # cage size can be any size from 1 cell to n^2 cells. 
+    # Makes use of GAC Prop
+    """
+    Intialize domains 1 to n for each cell
+    Create n-ary all-different constraints for rows and columns
+        EX: for a 3x3 grid, each row and column must have values 1,2,3 exactly once. 
+    Call BT_search with prop_GAC
+        does the initial GAC call to prune impossible values
+        selects variable via heuristic 
+        GAC then does some propagation
+            using check_var_val we look at the satisfying tuples to determine if assigning a value in the domain in consistent with the given operation and target value. 
+        If the domain is 0, meaning it returned False, then backtrack
+
+    
+    """
     pass
 
 def cagey_csp_model(cagey_grid):
