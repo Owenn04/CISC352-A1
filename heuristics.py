@@ -8,6 +8,8 @@
 # desc:
 #
 
+from cspbase import CSP, Constraint, Variable
+
 
 #Look for #IMPLEMENT tags in this file. These tags indicate what has
 #to be implemented to complete problem solution.
@@ -51,10 +53,18 @@ def ord_dh(csp):
 
 def ord_mrv(csp):
     ''' return Variable to be assigned according to the Minimum Remaining Values heuristic '''
-    # IMPLEMENT
-    pass
-    """
-    - get all the unassigned variables
-    - iterate through to find variable with smallest domain
-    - return Variable
-    """
+    
+    # get remaining unassigned variables
+    vars = csp.get_all_unasgn_vars()
+
+    # find variable with smallest cur domain
+    smallest = vars[0].cur_domain_size()
+    next_var = vars[0]
+
+    for var in vars:
+        if var.cur_domain_size() < smallest:
+            smallest = var.cur_domain_size()
+            next_var = var
+    
+    # return variable
+    return next_var
