@@ -122,7 +122,7 @@ def prop_FC(csp, newVar=None):
         # We get the constraints involving the cell that was assigned a new value: Ex. Row uniqueness, Column uniqueness, the Cage constraint, and possible operation constraints. 
         constraints = csp.get_cons_with_var(newVar)
     else:
-        # Not sure if we need to do this. But at the start of our model, we can FC without assigning a variable. This will check all constraints and should prune invalid values in any single cell cages. 
+        # Not sure if we need to do this as i think MRV does this. But at the start of our model, we can FC without assigning a variable. This will check all constraints and should prune invalid values in any single cell cages. 
         constraints = csp.get_all_cons()
 
     # Create this list for backtracking: if we need to undo FC, we know which values to restore to which variables' domains. 
