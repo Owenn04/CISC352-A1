@@ -50,6 +50,28 @@ def ord_dh(csp):
         - save the variable with largest counter
     - return Variable
     '''
+    # get remaining unassigned variables
+    vars = csp.get_all_unasgn_vars()
+
+    max_degree = -1
+    max_var = None
+
+    for var in vars:
+        degree = 0
+        # get all constraints that the var is involved in
+        constraints = csp.get_cons_with_var(var)
+        for con in constraints:
+            # if constraint has other assigned variables increase the degree by 1
+            if con.get_n_unasgn() > 1:
+                degree += 1
+
+        # update max if this variable has a higher degree
+        if degree > max_degree:
+            max_degree = degree
+            max_var = var
+    
+    return max_var
+
 
 def ord_mrv(csp):
     ''' return Variable to be assigned according to the Minimum Remaining Values heuristic '''
