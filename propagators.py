@@ -104,53 +104,18 @@ def prop_FC(csp, newVar=None):
        track of all pruned Variable,value pairs and return '''
     #IMPLEMENT
     pass
-    '''
-    - if none --> return
-    - else --> get variable assignment
-        - check surrounding nodes
-        - -1/+1 (n > x > 0)
-        - prunedVals = [[(x, y), 3, 4], [(a, b), 1]]
-        - remove newVar assignment from domain of surrounding nodes
-            - if no assignment available
-                - return False, prunedVals
-        - call prop_BT on new constraints
-        - if True --> return True, prunedVals
-        - else --> return False, prunedVals
-    '''
-    #NOTE: We use the satifying tuples functions in our model to determine valid solutions. The FC prop just finds constraints with one unassigned variable and makes use of check_var_val to test which values are valid and prune invalid ones. 
-
     # Consider a cell gets assigned a value. Ex. (1,1) get assigned 2. The cage in this example is  "3, [(1,1), (2,1)], '+'" such that these two cells must sum up to 3.
     if newVar:
         # We get the constraints involving the cell that was assigned a new value: Ex. Row uniqueness, Column uniqueness, the Cage constraint, and possible operation constraints. 
         constraints = csp.get_cons_with_var(newVar)
     else:
-        # Not sure if we need to do this as i think GAC does this. But at the start of our model, we can FC without assigning a variable. This will check all constraints and should prune invalid values in any single cell cages. 
+        # At the start of our model, we can FC without assigning a variable. This will check all constraints and should prune invalid values in any single cell cages. 
         constraints = csp.get_all_cons()
 
     # Create this list for backtracking: if we need to undo FC, we know which values to restore to which variables' domains. 
     pruned_vals = []
 
-    # For each constraint, we check if there is only one unassigned variable as FC only triggers when there is one unassigned variable. For binary cages, this is always true; for n-ary cages, we must give assignments to 2 cells first.
-    """
-    Cage constraint:
-        (1,1) = 2
-        con_get_n_unasgn() == 1: is True as (2, 1) is unassigned
-            unasgn_var = (2, 1)
-            for each val in cell (2, 1) domain: [1, 2, 3] we check it with check_var_val
-                check_var_val((2, 1), 1) is True as (2 + 1 = 3)
-                check_var_val((2, 1), 2) is False as (2 + 2 != 3)
-                    So add ((2, 1), 2) to pruned_vals and Prune 2 from (2, 1) domain
-                check_var_val((2, 1), 3) is False as (2 + 3 != 3)
-                    So add ((2, 1), 3) to pruned_vals and Prune 3 from (2, 1) domain
-    Row constraint:
-        We prune the newly assigned variable value: 2 from the domain's of cells (1, 2) and (1, 3)
-    Column constraint:
-        We prune the newly assigned variables value: 2 from the domain's of cells (2, 1) and (3, 1). The prune_value function protects from redundant pruning as setting the value to False twice causes no error. 
-    There are no operation constraints in this example.
-
-        Return (True, pruned_vals) since no domain is empty. 
-    """
-
+    # For each constraint, we check if there is only one unassigned variable as FC only triggers when there is one unassigned variable. For binary cages, this is always true
     for con in constraints:
         if con.get_n_unasgn() == 1:
             unasgn_var = con.get_unasgn_vars()[0]
@@ -237,3 +202,38 @@ def remove_inconsistent_values(var: Variable, con: Constraint):
 
     # return whether or not domain was edited + prune vals
     return removed, prunings
+
+
+'''
+    - if none --> return
+    - else --> get variable assignment
+        - check surrounding nodes
+        - -1/+1 (n > x > 0)
+        - prunedVals = [[(x, y), 3, 4], [(a, b), 1]]
+        - remove newVar assignment from domain of surrounding nodes
+            - if no assignment available
+                - return False, prunedVals
+        - call prop_BT on new constraints
+        - if True --> return True, prunedVals
+        - else --> return False, prunedVals
+
+        
+        #NOTE: We use the satifying tuples functions in our model to determine valid solutions. The FC prop just finds constraints with one unassigned variable and makes use of check_var_val to test which values are valid and prune invalid ones. 
+        Cage constraint:
+        (1,1) = 2
+        con_get_n_unasgn() == 1: is True as (2, 1) is unassigned
+            unasgn_var = (2, 1)
+            for each val in cell (2, 1) domain: [1, 2, 3] we check it with check_var_val
+                check_var_val((2, 1), 1) is True as (2 + 1 = 3)
+                check_var_val((2, 1), 2) is False as (2 + 2 != 3)
+                    So add ((2, 1), 2) to pruned_vals and Prune 2 from (2, 1) domain
+                check_var_val((2, 1), 3) is False as (2 + 3 != 3)
+                    So add ((2, 1), 3) to pruned_vals and Prune 3 from (2, 1) domain
+    Row constraint:
+        We prune the newly assigned variable value: 2 from the domain's of cells (1, 2) and (1, 3)
+    Column constraint:
+        We prune the newly assigned variables value: 2 from the domain's of cells (2, 1) and (3, 1). The prune_value function protects from redundant pruning as setting the value to False twice causes no error. 
+    There are no operation constraints in this example.
+
+        Return (True, pruned_vals) since no domain is empty. 
+    '''
