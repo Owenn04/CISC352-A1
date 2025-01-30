@@ -8,6 +8,8 @@
 # desc:
 #
 
+from cspbase import *
+from heuristics import *
 
 #Look for #IMPLEMENT tags in this file. These tags indicate what has
 #to be implemented to complete problem solution.
@@ -163,26 +165,75 @@ def prop_FC(csp, newVar=None):
     return True, pruned_vals
 
 
-def prop_GAC(csp, newVar=None):
+def prop_GAC(csp: CSP, newVar=None):
     '''Do GAC propagation. If newVar is None we do initial GAC enforce
        processing all constraints. Otherwise we do GAC enforce with
        constraints containing newVar on GAC Queue'''
-    #IMPLEMENT
-    '''
-    - if none -->
-		- heuristic (MRV?) to pick starting variable
-		- do same as else with heurist-selected cell as curr
-	- else -->
-		- initialize queue with adjacent cells
-		- while queue !empty
-			- pop cell from queue
-			- remove_inconsistent_values(curr, cell from queue)
-				- if true --> add all cell neighbours to queue (including curr cell)
+       
+    #store pruned vals
+    prunings = []
 
-    function remove_inconsistent_values(curr, adj)
-        - for every value in curr.domain
-            - check if adj.domain has value which satisfies constraint
-            - if no --> remove value from curr.domain, return True
-    if yes --> return False
-    '''
-    pass
+    if newVar == None:
+        # do initial GAC processing all constraints
+        # get starting var
+        start = ord_mrv(csp)        
+        status, prunings = prop_GAC(csp, start)
+
+    else:
+        # do GAC processing constraints containing newVar
+        # initialize queue with adjacent variables
+        queue = []
+        cons = csp.get_cons_with_var(newVar)
+        for c in cons:
+            for v in c.scope:
+                queue.append((v, c))
+
+        while len(queue) != 0:
+            # get first item in queue
+            var, con = queue.pop(0)
+
+            # remove inconsistent values from constraint
+            removed, newPruned = remove_inconsistent_values(var, con)
+            # update pruned vals
+            for p in newPruned:
+                prunings.append(p)
+
+            # value(s) were removed, update the queue
+            if removed:
+                # check there are still vars in domain
+                if True in var.curdom:
+                    # get all potentially affected vars
+                    new = csp.get_cons_with_var(var)
+                    # add vars to queue
+                    for c in new:
+                        for v in c.scope:
+                            queue.append((v, c))
+                
+                else:
+                    # if no options left --> fail search + return
+                    status = False
+                    return status, prunings
+
+            else:
+                status = True
+
+    return status, prunings
+
+
+def remove_inconsistent_values(var: Variable, con: Constraint):
+    removed = False
+    prunings = []
+
+    for val in var.cur_domain():
+        # check that there is exists a value in variable domain which
+        # satisfies the constraint
+        if not con.check_var_val(var, val):
+            # prune value from domain and store
+            var.prune_value(val)
+            prunings.append((var, val))
+
+            # value has been pruned
+            removed = True
+
+    # return whether or not domain was edited + prune vals
+    return removed, prunings
