@@ -119,7 +119,7 @@ def prop_FC(csp, newVar=None):
     for con in constraints:
         if con.get_n_unasgn() == 1:
             unasgn_var = con.get_unasgn_vars()[0]
-            for val in unasgn_var.domain():
+            for val in unasgn_var.cur_domain():
                 if not con.check_var_val(unasgn_var, val):
                     pruned_vals.append((unasgn_var, val))
                     unasgn_var.prune_value(val)

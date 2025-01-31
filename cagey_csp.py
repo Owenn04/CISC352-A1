@@ -170,20 +170,68 @@ def nary_ad_grid(cagey_grid):
     ## IMPLEMENT
     # cage size can be any size from 1 cell to n^2 cells. 
     # Makes use of GAC Prop
-    """
-    Intialize domains 1 to n for each cell
-    Create n-ary all-different constraints for rows and columns
-        EX: for a 3x3 grid, each row and column must have values 1,2,3 exactly once. 
-    Call BT_search with prop_GAC
-        does the initial GAC call to prune impossible values
-        selects variable via heuristic 
-        GAC then does some propagation
-            using check_var_val we look at the satisfying tuples to determine if assigning a value in the domain in consistent with the given operation and target value. 
-        If the domain is 0, meaning it returned False, then backtrack
 
-    
-    """
-    pass
+    # get dimensions of puzzle
+    n = cagey_grid[0]
+
+    # create the CSP
+    csp = CSP('N-ary AD Grid')
+
+    # create a variable for each cell and add to csp
+    i = 1  # column int
+    j = 1  # row int
+    for k in range(n**2):
+        # set name = cell location in grid
+        name = (j, i)
+
+        # set domain to include all vals 1 to n
+        domain = []
+        for m in range(1, n+1):
+            domain.append(m)
+
+        csp.add_var(Variable(name, domain))
+
+        # update cell position
+        i += 1
+        if i > n:
+            i = 1
+            j += 1
+        
+    # add row constraints 
+    for row in range(1, n+1):
+        # get all variables in this row
+        row_vars = []
+        for var in csp.get_all_vars():
+            if var.name[0] == row:
+                row_vars.append(var)
+        
+        # Create n-ary constraint for this row
+        scope = row_vars
+        csp.add_constraint(Constraint(f"Row{row}", scope))
+
+    # add column constraints 
+    for col in range(1, n+1):
+        # get all variables in this column
+        col_vars = []
+        for var in csp.get_all_vars():
+            if var.name[1] == col:
+                col_vars.append(var)
+        
+        # Create n-ary constraint for this column
+        scope = col_vars
+        csp.add_constraint(Constraint(f"Col{col}", scope))
+
+    import itertools
+    for con in csp.get_all_cons():
+        # initialize tuples array
+        sat_tuples = []
+
+        # compute all permutations of sat tuples for each constraint
+        sat_tuples = list(itertools.permutations(range(1, n+1)))
+        
+        con.add_satisfying_tuples(sat_tuples)
+
+    return csp, csp.get_all_vars()
 
 def cagey_csp_model(cagey_grid):
     ##IMPLEMENT
