@@ -1,6 +1,6 @@
 # =============================
-# Student Names:
-# Group ID:
+# Student Names: Norah Jurdjevic, Owen Sawler
+# Group ID: 19
 # Date:
 # =============================
 # CISC 352 - W23
@@ -90,7 +90,80 @@ def binary_ne_grid(cagey_grid):
     # cage size can be at most 2 cells. 
     # Makes use of FC Prop
 
-    pass
+    # get dimensions of puzzle
+    n = cagey_grid[0]
+
+    #create the CSP
+    csp = CSP('Binary NE Grid')
+
+    # create a variable for each cell and add to csp
+    i = 1 # column int
+    j = 1 # row int
+    for k in range(n**2):
+        # set name = cell location in grid
+        name = (j, i)
+        
+        # set domain to include all vals 0 to n
+        domain = []
+        for m in range(1,n+1):
+            domain.append(m)
+
+        csp.add_var(Variable(name, domain))
+        
+        # update cell position
+        i += 1
+        if i > n:
+            i = 1
+            j += 1
+        
+
+    for var in csp.get_all_vars():
+        cell_row, cell_col = var.name
+
+        row = cell_row + 1
+        col = cell_col + 1
+
+        while row <= n:
+            # for search to find the variables in row
+            for var_n in csp.get_all_vars():
+                if var_n.name == (row, cell_col):
+                    scope = [var, var_n]
+                    csp.add_constraint(Constraint((var.name, var_n.name), scope))
+            
+            row += 1
+        
+        while col <= n:
+            # for search to find the variable in col
+            for var_n in csp.get_all_vars():
+                if var_n.name == (cell_row, col):
+                    scope = [var, var_n]
+                    csp.add_constraint(Constraint((var.name, var_n.name), scope))
+            
+            col += 1
+
+        
+    # compute satisfying tuples for constraints
+    for con in csp.get_all_cons():
+        # initialize tuples array
+        sat_tuples = []
+
+        # get variables needed for constraint
+        # because it is binary NE we know there are only 2
+        get_vars = con.get_unasgn_vars()
+        left = get_vars[0]
+        right = get_vars[1]
+
+        # compute + add all satisfying tuples for constraint
+        for val_l in left.domain():
+            for val_r in right.domain():
+                # check values are not equal
+                if val_l != val_r:
+                    sat_tuples.append((val_l, val_r))
+        
+        con.add_satisfying_tuples(sat_tuples)
+    
+    return csp, csp.get_all_vars()
+
 
 
 def nary_ad_grid(cagey_grid):
