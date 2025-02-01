@@ -233,6 +233,61 @@ def nary_ad_grid(cagey_grid):
 
     return csp, csp.get_all_vars()
 
+
 def cagey_csp_model(cagey_grid):
-    ##IMPLEMENT
-    pass
+    # pass cagey_grid to n_ary all diff to get initial csp and var_array
+    csp, var_array = nary_ad_grid(cagey_grid)
+
+    # create cage constraints
+    # ignore first array element -- will always be grid size
+
+    # get cages
+    cages = cagey_grid[1]
+
+    # add cage constraints to csp
+    number = 1
+    for cage in cages:
+        cage_con = cage[1]
+
+        scope = []
+        csp_vars = csp.get_all_vars()
+
+        # find all variables relevant to constraint
+        for cell in cage_con:
+            for var in csp_vars:
+                # append variable to scope
+                if var.name == cell:
+                    scope.append(var)
+                    # remove from list of variables to be checked
+                    csp_vars.remove(var)
+                    break
+        
+        # check if operation is known
+        op = cage[-1]
+
+        # if unknown create variable to be added to csp + scope
+        if op == '?':
+            op_var = Variable('op: cage ' + str(number), domain=['+', '-', '/', '*', 'f'])
+            csp.add_var(op_var)
+            scope.append(op_var)
+        
+        # get result
+        result = cage[0]
+
+        csp.add_constraint(Constraint((result, op), scope))
+        # update cage number
+        number += 1
+
+    return
+
+b = (3, 
+[
+    (2, [(1, 1), (1, 2)], '-'), 
+    (2, [(1, 3)], '?'), 
+    (2, [(2, 1), (3, 1)], '/'), 
+    (3, [(2, 2), (2, 3)], '/'),
+    (1, [(3, 2), (3, 3)], '-')
+]
+)
+
+cagey_csp_model(b)
