@@ -84,6 +84,7 @@ An example of a 3x3 puzzle would be defined as:
 '''
 
 from cspbase import *
+import itertools
 
 def binary_ne_grid(cagey_grid):
     ##IMPLEMENT
@@ -221,7 +222,6 @@ def nary_ad_grid(cagey_grid):
         scope = col_vars
         csp.add_constraint(Constraint(f"Col{col}", scope))
 
-    import itertools
     for con in csp.get_all_cons():
         # initialize tuples array
         sat_tuples = []
@@ -233,7 +233,6 @@ def nary_ad_grid(cagey_grid):
 
     return csp, csp.get_all_vars()
 
-
 def cagey_csp_model(cagey_grid):
     # pass cagey_grid to n_ary all diff to get initial csp and var_array
     csp, var_array = nary_ad_grid(cagey_grid)
@@ -244,38 +243,93 @@ def cagey_csp_model(cagey_grid):
     # get cages
     cages = cagey_grid[1]
 
+    # get grid size
+    n = cagey_grid[0]
+    
     # add cage constraints to csp
     number = 1
     for cage in cages:
-        cage_con = cage[1]
-
-        scope = []
-        csp_vars = csp.get_all_vars()
-
-        # find all variables relevant to constraint
-        for cell in cage_con:
-            for var in csp_vars:
-                # append variable to scope
-                if var.name == cell:
-                    scope.append(var)
-                    # remove from list of variables to be checked
-                    csp_vars.remove(var)
-                    break
-        
-        # check if operation is known
-        op = cage[-1]
-
-        # if unknown create variable to be added to csp + scope
-        if op == '?':
-            op_var = Variable('op: cage ' + str(number), domain=['+', '-', '/', '*', 'f'])
-            csp.add_var(op_var)
-            scope.append(op_var)
-        
-        # get result
         result = cage[0]
+        cage_con = cage[1]
+        op = cage[2]
+        
+        scope = []
 
-        csp.add_constraint(Constraint((result, op), scope))
-        # update cage number
+        # Create cage variable using the format required by the autograder ;-;
+        cage_var_name = f"Cage_op({result}:{op}:[{', '.join(f'Var-Cell({cell[0]},{cell[1]})' for cell in cage_con)}])"
+        # check if operation is known
+        if op == "?":
+            op_var_domain = ["+", "-", "*", "/"]
+        else:
+            op_var_domain = [op]
+            
+        cage_var = Variable(cage_var_name, op_var_domain)
+        csp.add_var(cage_var)
+        var_array.append(cage_var)
+        scope.append(cage_var)
+
+        # Add cell variables to scope
+        for cell in cage_con:
+            # calculate index of cell in var_array by taking x-coord * grid size + y-coord (subtract 1 because index starts at 0)
+            idx = (cell[0] - 1) * n + (cell[1] - 1)
+            scope.append(var_array[idx])
+
+        
+
+        # Generate satisfying tuples. 
+        sat_tuples = []
+        # get all possible domain values for each variable in scope
+        domains = [var.domain() for var in scope]
+
+        # Try all possible combinations of values from the domains by unpacking the list of domains into individual arguments to use as the cartesian product for all possible combinations
+        for t in itertools.product(*domains):
+            curr_op = t[0]  # first element is always the operation
+            values = t[1:]  # rest are the cell values
+
+            valid = False
+            # Addition
+            if curr_op == "+":
+                # check if sums of values equals the target result
+                valid = (sum(values) == result)
+            # Multiplication
+            elif curr_op == "*":
+                prod = 1
+                # calculate the product of all values and check if its equals the target result
+                for v in values:
+                    prod *= v
+                valid = (prod == result)
+            elif curr_op == "-":
+                # Try all permutations for subtraction
+                for p in itertools.permutations(values):
+                    cur_val = p[0]
+                    for i in range(1, len(p)):
+                        cur_val -= p[i]
+                    if cur_val == result:
+                        valid = True
+                        break
+            elif curr_op == "/":
+                # Try all permutations for division
+                for p in itertools.permutations(values):
+                    cur_val = p[0]
+                    valid_div_flag = True
+                    for i in range(1, len(p)):
+                        if p[i] == 0:
+                            valid_div_flag = False # division by 0 is not allowed so we need this flag
+                            break
+                        cur_val /= p[i]
+                    if valid_div_flag and cur_val == result:
+                        valid = True
+                        break
+
+            # if the combination is valid, add it to the satisfying tuples list
+            if valid:
+                sat_tuples.append(t)
+
+
+        con = Constraint(f"CageConstraint_{number}", scope)
+        con.add_satisfying_tuples(sat_tuples)
+        csp.add_constraint(con)
+         # update cage number
         number += 1
 
-    return
+    return csp, var_array
